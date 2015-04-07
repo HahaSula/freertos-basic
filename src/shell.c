@@ -4,6 +4,7 @@
 #include <string.h>
 #include "fio.h"
 #include "filesystem.h"
+#include <stdlib.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -25,9 +26,12 @@ void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
 void _command(int, char **);
+void new_command(int, char **);
+int myatoi(char *);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
-
+int prime(int );
+int fib(int );
 cmdlist cl[]={
 	MKCL(ls, "List directory"),
 	MKCL(man, "Show the manual of the command"),
@@ -37,7 +41,8 @@ cmdlist cl[]={
 	MKCL(mmtest, "heap memory allocation test"),
 	MKCL(help, "help"),
 	MKCL(test, "test new function"),
-	MKCL(, ""),
+	MKCL(new,"make new task"),
+	MKCL(,""),
 };
 
 int parse_command(char *str, char *argv[]){
@@ -68,6 +73,7 @@ void ls_command(int n, char *argv[]){
         dir = fs_opendir("");
     }else if(n == 1){
         dir = fs_opendir(argv[1]);
+	fio_printf(1,"\r\n fir:%d \r\n",dir);
         //if(dir == )
     }else{
         fio_printf(1, "Too many argument!\r\n");
@@ -163,9 +169,28 @@ void help_command(int n,char *argv[]){
 void test_command(int n, char *argv[]) {
     int handle;
     int error;
-
-    fio_printf(1, "\r\n");
     
+    char fibchar[] = "fib";
+    char primechar[] = "prime";
+
+    //fio_printf(1, "\r\n");
+    if((!strcmp(fibchar,argv[1])&&(n>=2))){
+	int input =myatoi(argv[2]);
+	//int input = 1 ;
+    	int ans = fib (input);
+	fio_printf(1,"\r\nfib(%d): %d\r\n",input,ans);
+    }
+    else if(!strcmp(primechar,argv[1])){
+    	int input = myatoi(argv[2]);
+	int ans = prime(input);
+	fio_printf(1,"\r\nIs %d is Prime ? :",input);
+	if(ans)
+	    fio_printf(1,"Yes \r\n");
+	else 
+	    fio_printf(1,"No \r\n"); 
+    }
+
+
     handle = host_action(SYS_SYSTEM, "mkdir -p output");
     handle = host_action(SYS_SYSTEM, "touch output/syslog");
 
@@ -190,7 +215,12 @@ void _command(int n, char *argv[]){
     (void)n; (void)argv;
     fio_printf(1, "\r\n");
 }
-
+void new_command(int n,char *argv[]){
+	fio_printf(1, "\r\n");
+	//printf("123");	
+	
+	return ;
+}
 cmdfunc *do_command(const char *cmd){
 
 	int i;
@@ -201,3 +231,40 @@ cmdfunc *do_command(const char *cmd){
 	}
 	return NULL;	
 }
+int fib(int input){
+	if(input == 1){
+		return 1;
+		
+	}
+	else if(input == 2){
+		return 1;
+	}
+	else if(input < 1){
+		return 0;
+	}
+	else {
+		return fib(input-1) + fib(input-2);
+	}
+
+
+}
+int prime(int input){
+	int forloop ;
+	if(input == 1) return 0 ;
+	if(input == 2) return 1 ;
+	for(forloop = 2 ; forloop <=input/2 ; forloop++){
+		if(input %forloop==0)
+			return 0;
+	}
+	return 1 ;
+}
+int myatoi(char *str){
+    int res = 0; // Initialize result
+ 
+    // Iterate through all characters of input string and update result
+    for (int i = 0; str[i] != '\0'; ++i)
+        res = res*10 + str[i] - '0';
+ 
+    // return result.
+    return res;
+} 
